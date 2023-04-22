@@ -44,7 +44,7 @@ class MyThread (threading.Thread):
 if __name__ == '__main__':
     f = []
     try:
-        for i in range (3):
+        for i in range (2):
             f.append(MyThread(i))
             f[-1].start()
         while True:
