@@ -16,6 +16,7 @@ port = int(os.getenv("MQTT_BROKER_PORT"))
 username = os.getenv("MQTT_BROKER_USERNAME")
 password = os.getenv("MQTT_BROKER_PASSWORD")
 
+numberOfBox = int(os.getenv("NUMBER_OF_BOX"))
 
 print(host)
 print(port)
@@ -44,11 +45,11 @@ class MyThread (threading.Thread):
 if __name__ == '__main__':
     f = []
     try:
-        for i in range (2):
+        for i in range (100,100+numberOfBox):
             f.append(MyThread(i))
             f[-1].start()
         while True:
-            print("sleep main")
+            # print("sleep main")
             time.sleep(2)
     except KeyboardInterrupt:
         for i in range (3):
