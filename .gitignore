@@ -130,7 +130,9 @@ dmypy.json
 
 
 Scripts/
-LogData/
+LogData/*.json
+LogData/*.csv
+
 pyvenv.cfg
 
 
