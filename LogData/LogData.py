@@ -24,8 +24,6 @@ import logging
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 import json
-import pygsheets
-import pandas as pd
 from datetime import datetime
 
 
