@@ -26,6 +26,17 @@ import pygsheets
 import pandas as pd
 from datetime import datetime
 
+from dotenv import load_dotenv
+
+
+
+load_dotenv()
+host = os.getenv("MQTT_BROKER_HOST")
+port = int(os.getenv("MQTT_BROKER_PORT"))
+
+username = os.getenv("MQTT_BROKER_USERNAME")
+password = os.getenv("MQTT_BROKER_PASSWORD")
+
 
 parser = argparse.ArgumentParser()
 
@@ -48,10 +59,11 @@ parser.add_argument('-D', '--debug', action='store_true')
 
 args, unknown = parser.parse_known_args()
 
-args.host = "35.240.158.2"
-args.port = 8883
-args.username = "eboost-k2"
-args.password = "ZbHzPb5W"
+args.host = host
+args.port = port
+args.username = username
+args.password = password
+
 nextPackage = 0
 
 
@@ -141,19 +153,20 @@ def checkBoxesStatus(msg):
         boxStatus = tempPayload.split(sep=",")
         print(boxStatus[-1])
         if(boxStatus[-1] == '10-0'):
-            print('online')
+            # print('online')
             arrayBoxStatusDict[msg.topic] = boxStatusDict['online']
         else:
-            print('offline')
+            # print('offline')
             arrayBoxStatusDict[msg.topic] = boxStatusDict['offline']
         arrayBoxNumberOfChargingOutlet[msg.topic] = 0
         arrayBoxChargingOutlets[msg.topic] = ""
         for outletStatus in boxStatus:
-            if(outletStatus.split(sep="-")[-1] == 2):
+            if(outletStatus.split(sep="-")[-1] == '2'):
                 arrayBoxNumberOfChargingOutlet[msg.topic] += 1
                 arrayBoxChargingOutlets[msg.topic] += outletStatus.split(sep="-")[0] + ","
                 
-        
+        # print(f'arrayBoxNumberOfChargingOutlet[msg.topic] = {arrayBoxNumberOfChargingOutlet[msg.topic]}')
+        # print(f'arrayBoxChargingOutlets[msg.topic] = {arrayBoxChargingOutlets[msg.topic]}')
         unsubsribeOneTopic(msg.topic)    
     
 def isAllBoxStatusChecked():
