@@ -287,21 +287,21 @@ class EboxSimulator(mqtt.Client):
     
     def publish_ebox_statuses(self):
         # Publish message to MQTT Broker
-        self.publish(self.STATUS_TOPIC,self.statuses_update())
+        self.publish(self.STATUS_TOPIC,self.statuses_update(), retain=True)
     def publish_ebox_currents(self):
         # Publish message to MQTT Broker
-        self.publish(self.CURRENT_TOPIC,self.currents_update())
+        self.publish(self.CURRENT_TOPIC,self.currents_update(), retain=True)
     def publish_ebox_power_factors(self):
         # Publish message to MQTT Broker
-        self.publish(self.POWER_FACTOR_TOPIC,self.power_factors_update())
+        self.publish(self.POWER_FACTOR_TOPIC,self.power_factors_update(), retain=True)
     def publish_ebox_powers(self):
         # Publish message to MQTT Broker
-        self.publish(self.POWER_TOPIC,self.powers_update())
+        self.publish(self.POWER_TOPIC,self.powers_update(), retain=True)
         
     
     def publish_ebox_voltage(self):
         # Publish message to MQTT Broker
-        self.publish(self.VOLTAGE_TOPIC,self.voltage_update())    
+        self.publish(self.VOLTAGE_TOPIC,self.voltage_update(), retain=True)    
         
     
 
