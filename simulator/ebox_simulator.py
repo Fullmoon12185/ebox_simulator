@@ -167,6 +167,7 @@ class EboxSimulator(mqtt.Client):
         
     def isTimeElapseDuration(self, id, duration):
         self.outletCurrentTime[id] = time.time()
+        self.printCustom(f'timediff = {self.outletCurrentTime[id] - self.outletLastTime[id]}')
         if(self.outletCurrentTime[id] - self.outletLastTime[id] > duration):
             self.outletLastTime[id] = self.outletCurrentTime[id]
             return True
@@ -326,6 +327,7 @@ class EboxSimulator(mqtt.Client):
         self.updateOutletCurrent(id, 0)
         self.updateOutletPowerFactor(id, 0)
         self.updateOutletPower(0)
+        self.FSMState[id] = FSM_START_STATE
         
         
     def outletReady(self, id):

@@ -45,7 +45,7 @@ class MyThread (threading.Thread):
 if __name__ == '__main__':
     f = []
     try:
-        for i in range (9,9+numberOfBox):
+        for i in range (110,110+numberOfBox):
             f.append(MyThread(i))
             f[-1].start()
         while True:
