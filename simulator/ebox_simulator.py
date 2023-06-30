@@ -24,8 +24,8 @@ TIME_LOOP   = 0.01 #second
 MCU_POWER_USAGE = 6
 
 
-PUBLISH_DURATION = 3
-DURATION_FROM_READY_TO_CHARGING = 10
+PUBLISH_DURATION = 1
+DURATION_FROM_READY_TO_CHARGING = 5
 DURATION_FOR_CHARGING_COMPLETE = 180
 DURATION_AFTER_CHARGING_COMPLETE = 30
 
@@ -231,13 +231,21 @@ class EboxSimulator(mqtt.Client):
             elif(self.FSMState[id] == FSM_WAIT_FOR_CHARGING_COMPLETE):
                 if(self.isTimeElapseDuration(id, DURATION_FOR_CHARGING_COMPLETE)):
                     self.outletFullCharge(id)
+                    self.updateOutletCurrent(id, 0)
+                    self.updateOutletPowerFactor(id, 0)
                     self.FSMState[id] = FSM_CHARGING_COMPLETE
                     self.updateOutletStateLastTime(id)
+                    
             elif(self.FSMState[id] == FSM_CHARGING_COMPLETE):
-                if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE)):
-                    self.outletAvailable(id)
-                    self.FSMState[id] = FSM_START_STATE
-                
+                if(id == 9 or id == 8):
+                    if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE*10)):
+                        self.outletAvailable(id)
+                        self.FSMState[id] = FSM_START_STATE
+                else:
+                    if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE)):
+                        self.outletAvailable(id)
+                        self.FSMState[id] = FSM_START_STATE
+                    
                     
                 
                 
