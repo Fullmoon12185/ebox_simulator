@@ -66,7 +66,12 @@ args.password = password
 
 nextPackage = 0
 
-
+boxValueDict = {
+    "Status":"S",
+    "Power": "P",
+    "Ampere": "A",
+    "PowerMeter":"PM"
+}
 
 boxStatusDict = {
     'init': 'init',
@@ -76,8 +81,12 @@ boxStatusDict = {
 
 arrayBoxStatusDict = {}
 arrayBoxPowerDict = {}
+arrayBoxPowerMeterDict = {}
 arrayBoxNumberOfChargingOutlet = {}
+arrayBoxNumberOfStrangeOutlet = {}
 arrayBoxChargingOutlets = {}
+arrayBoxStrangeOutlets = {}
+arrayBoxPowerMeter = {}
 
 isConnected = 0
 
@@ -99,6 +108,7 @@ with open(filename, 'r') as data:
 for box in boxes:
     print(box["BoxID"])
     print(box["BoxName"])
+    print(box["PowerMeter"])
 
 
 def initBoxStatus():
@@ -106,6 +116,7 @@ def initBoxStatus():
     for box in boxes:    
         arrayBoxStatusDict['S'+ box["BoxID"]] = boxStatusDict['init']
         arrayBoxPowerDict['P'+box["BoxID"]] = -1
+        arrayBoxPowerMeterDict['PM'+box['BoxID']] = -1
  
 
 def subscribeOneTopic(topic):
@@ -121,6 +132,11 @@ def subscribeAllTopics():
         topic = "P" + box["BoxID"]
         print(topic)
         subscribeOneTopic(topic)
+        
+        # if(box["PowerMeter"] == '1'):
+        #     topic = "PM" + box["BoxID"]
+        #     print(topic)
+        #     subscribeOneTopic(topic)
 
 def subscribeAllStatusTopics():
     for box in boxes:    
@@ -138,7 +154,7 @@ def subscribedAllPowerTopics():
         topic = "P" + box["BoxID"]
         print(topic)
         subscribeOneTopic(topic)
-def subscribedAllPowerTopics():
+def unsubscribedAllPowerTopics():
     for box in boxes:    
         topic = "P" + box["BoxID"]
         print(topic)
@@ -160,10 +176,16 @@ def checkBoxesStatus(msg):
             arrayBoxStatusDict[msg.topic] = boxStatusDict['offline']
         arrayBoxNumberOfChargingOutlet[msg.topic] = 0
         arrayBoxChargingOutlets[msg.topic] = ""
+        arrayBoxNumberOfStrangeOutlet[msg.topic] = 0
+        arrayBoxStrangeOutlets[msg.topic] = ""
+        
         for outletStatus in boxStatus:
             if(outletStatus.split(sep="-")[-1] == '2'):
                 arrayBoxNumberOfChargingOutlet[msg.topic] += 1
                 arrayBoxChargingOutlets[msg.topic] += outletStatus.split(sep="-")[0] + ","
+            elif(outletStatus.split(sep="-")[-1] == '1' or outletStatus.split(sep="-")[-1] == '6' or outletStatus.split(sep="-")[-1] == '7' or outletStatus.split(sep="-")[-1] == '12'):
+                arrayBoxNumberOfStrangeOutlet[msg.topic] += 1
+                arrayBoxStrangeOutlets[msg.topic] += outletStatus.split(sep="-")[0] + "-" + outletStatus.split(sep="-")[-1] +  ","
                 
         # print(f'arrayBoxNumberOfChargingOutlet[msg.topic] = {arrayBoxNumberOfChargingOutlet[msg.topic]}')
         # print(f'arrayBoxChargingOutlets[msg.topic] = {arrayBoxChargingOutlets[msg.topic]}')
@@ -191,6 +213,15 @@ def isAllBoxPowerChecked():
     print(arrayBoxPowerDict)
     return True
 
+def checkBoxesPowerMeter(msg):
+    if('PMEbox' in msg.topic):
+        print("receive PMEbox data")
+        boxID = msg.topic.split(sep = "_")[-1]
+        tempPayload = str(msg.payload.decode('utf-8'))
+        powerConsumption = tempPayload.split(sep=',')[-1]
+        arrayBoxPowerDict[msg.topic] = powerConsumption
+        unsubsribeOneTopic(msg.topic) 
+
 def writeDataToGoogleSpreadSheet():
     try:
         gc = pygsheets.authorize(service_file='./creds1.json')
@@ -205,7 +236,9 @@ def writeDataToGoogleSpreadSheet():
                          'Charging Outlets': arrayBoxChargingOutlets['S' + box['BoxID']],
                          'Power Consumption':arrayBoxPowerDict['P' + box['BoxID']], 
                          'Power Consumption kWh':round(float(arrayBoxPowerDict['P' + box['BoxID']])/(3600*1000),2), 
-                         'Updated time': datetime.now()
+                         'Updated time': datetime.now(),
+                         "Number of Issued Outlets": arrayBoxNumberOfStrangeOutlet['S' + box['BoxID']],
+                         "Issued outlets": arrayBoxStrangeOutlets['S' + box['BoxID']]
                          })
         df = pd.DataFrame(data)
         print(df)
