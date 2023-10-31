@@ -205,6 +205,12 @@ def checkBoxesPowerConsumption(msg):
         tempPayload = str(msg.payload.decode('utf-8'))
         powerConsumption = tempPayload.split(sep=',')[-1].split(sep='-')[-1]
         arrayBoxPowerDict[msg.topic] = powerConsumption
+        if(msg.topic == "PEbox_0089"):
+            print("dslsjldfjslfkjsdf")
+            print(tempPayload)
+            print(powerConsumption)
+            print("0298340238403928")
+            
         unsubsribeOneTopic(msg.topic)   
 def isAllBoxPowerChecked():
     for box in boxes: 
