@@ -162,7 +162,8 @@ class EboxSimulator(mqtt.Client):
         
         
     def printCustom(self, message):
-        print(f'[{self.eboxId}] - {message}')    
+        # print(f'[{self.eboxId}] - {message}')  
+        None  
     
     
     def updateOutletStateLastTime(self, id):

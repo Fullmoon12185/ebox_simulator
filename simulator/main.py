@@ -54,7 +54,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         for i in range (1+numberOfBox):
             f[i].join()
-            print('abc')
+            print(f'terminate thread {i}')
     # id1 = 1
     # eboxId1 = f'{id1+1:04d}'
     # print(f'eboxId = {eboxId1}')
