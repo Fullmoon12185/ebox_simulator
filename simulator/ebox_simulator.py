@@ -20,12 +20,12 @@
 import paho.mqtt.client as mqtt
 import time
 
-TIME_LOOP   = 0.01 #second
+TIME_LOOP   = 0.1 #second
 MCU_POWER_USAGE = 6
 
 
 PUBLISH_DURATION = 1
-DURATION_FROM_READY_TO_CHARGING = 5
+DURATION_FROM_READY_TO_CHARGING = 2
 DURATION_FOR_CHARGING_COMPLETE = 180
 DURATION_AFTER_CHARGING_COMPLETE = 30
 
@@ -54,39 +54,40 @@ FSMStateDict = {
 
 class EboxSimulator(mqtt.Client):
     
-    # def __init__(self, id):
-    #     mqtt.Client.__init__(self)
-    #     self.rc = 0
-    #     self.id = id
-    STATUS_TOPIC = ""
-    CURRENT_TOPIC = ""    
-    VOLTAGE_TOPIC = ""
-    POWER_TOPIC = ""
-    POWER_FACTOR_TOPIC = ""
-    
-    powerTotal = 0
-    outletStatus = []
-    outletVoltage = 280
-    outletCurrent = []
-    
-    outletPowerFactor = []
-    outletPower = []
-    
-    previousFSMState = []
-    FSMState = []
-    outletLastTime = []
-    outletCurrentTime = []
-    
-    updateDataLastTime = 0
-    updateDataCurrentTime = 0
-    
-    eboxId = 0
-    
-    counter = 0
-    topicIndex = 0
-    
-    lastPublishTime = 0
-    currentPublishTime = 0
+    def __init__(self, id):
+        mqtt.Client.__init__(self)
+        # self.rc = 0
+        # self.id = id
+        self.STATUS_TOPIC = ""
+        self.CURRENT_TOPIC = ""    
+        self.VOLTAGE_TOPIC = ""
+        self.POWER_TOPIC = ""
+        self.POWER_FACTOR_TOPIC = ""
+        
+        self.powerTotal = 0
+        self.outletStatus = []
+        self.outletVoltage = 280
+        self.outletCurrent = []
+        
+        self.outletPowerFactor = []
+        self.outletPower = []
+        
+        self.previousFSMState = []
+        self.FSMState = []
+        self.outletLastTime = []
+        self.outletCurrentTime = []
+        self.diffTime = []
+        
+        self.updateDataLastTime = 0
+        self.updateDataCurrentTime = 0
+        
+        self.eboxId = 0
+        
+        self.counter = 0
+        self.topicIndex = 0
+        
+        self.lastPublishTime = 0
+        self.currentPublishTime = 0
     
     def on_connect(self, mqttc, obj, flags, rc):
         self.printCustom("rc: "+str(rc))
@@ -95,7 +96,8 @@ class EboxSimulator(mqtt.Client):
         self.printCustom("Connect failed")
 
     def on_message(self, mqttc, obj, msg):
-        # self.printCustom("Nguyen....")
+        self.printCustom("Nguyen....")
+        self.printCustom(obj)
         self.printCustom(msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
         self.processCommand(msg.topic, msg.payload)
         
@@ -151,12 +153,12 @@ class EboxSimulator(mqtt.Client):
         
     def running(self):
         self.loop()
-        time.sleep(TIME_LOOP)
         self.appPublishData()
         self.updateOutletState()
         self.displayOutletState(0)
         self.updateOutletData()
         
+        time.sleep(0.1)
         
         
     def printCustom(self, message):
@@ -169,7 +171,9 @@ class EboxSimulator(mqtt.Client):
         
     def isTimeElapseDuration(self, id, duration):
         self.outletCurrentTime[id] = time.time()
-        self.printCustom(f'timediff = {self.outletCurrentTime[id] - self.outletLastTime[id]}')
+        if(int(self.outletCurrentTime[id] - self.outletLastTime[id])%2 == 0 and int(self.outletCurrentTime[id] - self.outletLastTime[id]) != self.diffTime):
+            self.printCustom(f'timediff = {self.outletCurrentTime[id] - self.outletLastTime[id]}')
+            self.diffTime = int(self.outletCurrentTime[id] - self.outletLastTime[id])
         if(self.outletCurrentTime[id] - self.outletLastTime[id] > duration):
             self.outletLastTime[id] = self.outletCurrentTime[id]
             return True
@@ -281,6 +285,7 @@ class EboxSimulator(mqtt.Client):
         if str(self.eboxId) in topic and int(payload[0]) == 49:
             tempOutletId = int(payload[1]) - 48
             self.printCustom(f'tempOutletId = {tempOutletId}')
+            self.printCustom(f'self.eboxId = {self.eboxId}')
             if(tempOutletId > NUMBER_OF_OUTLET - 1):
                 return
             

@@ -45,15 +45,31 @@ class MyThread (threading.Thread):
 if __name__ == '__main__':
     f = []
     try:
-        for i in range (110,110+numberOfBox):
+        for i in range (1,1+numberOfBox):
             f.append(MyThread(i))
             f[-1].start()
         while True:
             # print("sleep main")
             time.sleep(2)
     except KeyboardInterrupt:
-        for i in range (3):
+        for i in range (1+numberOfBox):
             f[i].join()
             print('abc')
-        
-        
+    # id1 = 1
+    # eboxId1 = f'{id1+1:04d}'
+    # print(f'eboxId = {eboxId1}')
+    # box1 = EboxSimulator(eboxId1)
+    # box1.run(host, port, username, password, eboxId1)
+    
+    # id2 = 2
+    # eboxId2 = f'{id2+1:04d}'
+    # print(f'eboxId = {eboxId2}')
+    # box2 = EboxSimulator(eboxId2)
+    # box2.run(host, port, username, password, eboxId2)
+    # try:    
+    #     while True:
+    #         box1.running()    
+    #         box2.running()
+    #         time.sleep(0.1)
+    # except KeyboardInterrupt:
+    #     print("Exit")
