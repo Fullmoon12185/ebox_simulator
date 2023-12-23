@@ -257,6 +257,7 @@ def writeDataToGoogleSpreadSheet():
 
         #update the first sheet with df, starting at cell B2. 
         wks.set_dataframe(df,(1,1))
+        # wks.append_table(value = df)
         
         print('Done update spreadsheet!')
     except:

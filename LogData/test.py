@@ -39,18 +39,20 @@
 # import gspread
 # import json
 
-scopes = [
-'https://www.googleapis.com/auth/spreadsheets',
-'https://www.googleapis.com/auth/drive'
-]
+# scopes = [
+# 'https://www.googleapis.com/auth/spreadsheets',
+# 'https://www.googleapis.com/auth/drive'
+# ]
 
-credentials = ServiceAccountCredentials.from_json_keyfile_name("./creds1.json", scopes) #access the json key you downloaded earlier 
-file = gspread.authorize(credentials) # authenticate the JSON key with gspread
-sheet = file.open('Ebox Data Gathering') #open sheet
-sheet = sheet.sheet1 #replace sheet_name with the name that corresponds to yours, e.g, it can be sheet1
+# credentials = ServiceAccountCredentials.from_json_keyfile_name("./creds1.json", scopes) #access the json key you downloaded earlier 
+# file = gspread.authorize(credentials) # authenticate the JSON key with gspread
+# sheet = file.open('Ebox Data Gathering') #open sheet
+# sheet = sheet.sheet1 #replace sheet_name with the name that corresponds to yours, e.g, it can be sheet1
 
 # sheet.update_acell('C2', 'Blue')
 
 # sheet.update_cell(2, 3, 'Blue') #updates row 2 on column 3
 
 # sheet.update('A2:B3', [["Not Ford", "Not Lancia"], ["Nothing", "Not"]])
+
+print("hello world")
