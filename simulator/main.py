@@ -45,14 +45,14 @@ class MyThread (threading.Thread):
 if __name__ == '__main__':
     f = []
     try:
-        for i in range (1,1+numberOfBox):
+        for i in range (10,10+numberOfBox):
             f.append(MyThread(i))
             f[-1].start()
         while True:
             # print("sleep main")
             time.sleep(2)
     except KeyboardInterrupt:
-        for i in range (1+numberOfBox):
+        for i in range (0+numberOfBox):
             f[i].join()
             print(f'terminate thread {i}')
     # id1 = 1
