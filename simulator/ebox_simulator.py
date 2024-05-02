@@ -233,18 +233,18 @@ class EboxSimulator(mqtt.Client):
                     self.outletCharging(id)
             elif(self.FSMState[id] == FSM_CHARGING_STATE):
                 self.FSMState[id] = FSM_WAIT_FOR_CHARGING_COMPLETE
+                self.updateOutletStateLastTime(id)
             elif(self.FSMState[id] == FSM_WAIT_FOR_CHARGING_COMPLETE):
                 if(self.isTimeElapseDuration(id, DURATION_FOR_CHARGING_COMPLETE)):
-                    self.outletFullCharge(id)                   
+                    self.outletFullCharge(id)     
+                    self.updateOutletStateLastTime(id)              
             elif(self.FSMState[id] == FSM_CHARGING_COMPLETE):
                 if(id == 9 or id == 8):
                     if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE*10)):
-                        self.outletAvailable(id)
-                        self.FSMState[id] = FSM_START_STATE
+                        self.outletReady(id)
                 else:
                     if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE)):
-                        self.outletAvailable(id)
-                        self.FSMState[id] = FSM_START_STATE
+                        self.outletReady(id)
                     
                     
                 
