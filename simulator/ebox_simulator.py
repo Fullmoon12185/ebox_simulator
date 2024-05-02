@@ -25,9 +25,10 @@ MCU_POWER_USAGE = 6
 
 
 PUBLISH_DURATION = 1
-DURATION_FROM_READY_TO_CHARGING = 20
-DURATION_FOR_CHARGING_COMPLETE = 30
+DURATION_FROM_READY_TO_CHARGING = 2
+DURATION_FOR_CHARGING_COMPLETE = 10
 DURATION_AFTER_CHARGING_COMPLETE = 20
+DURATION_FOR_CHARGER_RESTART = 10
 
 NUMBER_OF_OUTLET = 10
 
@@ -35,6 +36,7 @@ OUTLET_AVAILABLE = 0
 OUTLET_READY = 1
 OUTLET_CHARGING = 2
 OUTLET_FULLCHARGE = 3
+OUTLET_UNPLUG = 4
 
 
 FSM_START_STATE = 0
@@ -42,13 +44,16 @@ FSM_READY_STATE = 1
 FSM_CHARGING_STATE = 2
 FSM_WAIT_FOR_CHARGING_COMPLETE = 3
 FSM_CHARGING_COMPLETE = 4
+FSM_CHARGING_UNPLUG = 5
+FSM_WAIT_FOR_CHARGER_RESTART = 6
 
 FSMStateDict = {
   FSM_START_STATE: "FSM_START_STATE",
   FSM_READY_STATE: "FSM_READY_STATE",
   FSM_CHARGING_STATE: "FSM_CHARGING_STATE",
   FSM_WAIT_FOR_CHARGING_COMPLETE: "FSM_WAIT_FOR_CHARGING_COMPLETE",
-  FSM_CHARGING_COMPLETE: "FSM_CHARGING_COMPLETE"
+  FSM_CHARGING_COMPLETE: "FSM_CHARGING_COMPLETE",
+  FSM_WAIT_FOR_CHARGER_RESTART: "FSM_WAIT_FOR_CHARGER_RESTART"
 }
 
 
@@ -77,6 +82,7 @@ class EboxSimulator(mqtt.Client):
         self.outletLastTime = []
         self.outletCurrentTime = []
         self.diffTime = []
+        self.counterForChargerRestart = []
         
         self.updateDataLastTime = 0
         self.updateDataCurrentTime = 0
@@ -137,6 +143,7 @@ class EboxSimulator(mqtt.Client):
             
             self.outletLastTime.append(0)
             self.outletCurrentTime.append(0)
+            self.counterForChargerRestart.append(0)
             
             
         self.topic_intialization(self.eboxId)
@@ -239,13 +246,20 @@ class EboxSimulator(mqtt.Client):
                     self.outletFullCharge(id)     
                     self.updateOutletStateLastTime(id)              
             elif(self.FSMState[id] == FSM_CHARGING_COMPLETE):
-                if(id == 9 or id == 8):
-                    if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE*10)):
+                if(id == 0):
+                    if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE)):
                         self.outletReady(id)
+                        self.printCustom(f'self.counterForChargerRestart = {self.counterForChargerRestart[id]}')
+                        if(self.counterForChargerRestart[id] < 3):
+                            self.counterForChargerRestart[id] = self.counterForChargerRestart[id] + 1
+                            self.FSMState[id] = FSM_WAIT_FOR_CHARGER_RESTART
+                        self.updateOutletStateLastTime(id)
                 else:
                     if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE)):
                         self.outletReady(id)
-                    
+            elif(self.FSMState[id] == FSM_WAIT_FOR_CHARGER_RESTART):
+                if(self.isTimeElapseDuration(id, DURATION_FOR_CHARGER_RESTART)):    
+                    self.FSMState[id] = FSM_START_STATE    
                     
                 
                 
@@ -297,6 +311,8 @@ class EboxSimulator(mqtt.Client):
                 
             elif(tempOutletStatus == 1):
                 self.outletReady(tempOutletId)
+                self.counterForChargerRestart[tempOutletId] = 0
+                
                 
                 
                 
@@ -374,6 +390,14 @@ class EboxSimulator(mqtt.Client):
         self.FSMState[id] = FSM_CHARGING_COMPLETE
         self.updateOutletStateLastTime(id)
     
+    
+    def outletUnplug(self, id):
+        self.printCustom(f'[Outlet {id} is unplug]')
+        self.set_outlet_status(id, OUTLET_UNPLUG)
+        self.updateOutletCurrent(id, 0)
+        self.updateOutletPowerFactor(id, 0)
+        self.FSMState[id] = FSM_CHARGING_UNPLUG
+        self.updateOutletStateLastTime(id)
     
     def currents_update(self):
         currentMessage = ""
