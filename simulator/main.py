@@ -28,7 +28,7 @@ class MyThread (threading.Thread):
     def __init__(self, id):
         threading.Thread.__init__(self)
         self.id = id
-        self.eboxId = f'{id+1:04d}'
+        self.eboxId = f'{id:04d}'
         print(f'eboxId = {self.eboxId}')
         self.mqttc = EboxSimulator(self.eboxId)
 
@@ -45,7 +45,7 @@ class MyThread (threading.Thread):
 if __name__ == '__main__':
     f = []
     try:
-        for i in range (10,10+numberOfBox):
+        for i in range (1,1+numberOfBox):
             f.append(MyThread(i))
             f[-1].start()
         while True:
