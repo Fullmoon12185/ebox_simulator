@@ -255,7 +255,7 @@ class EboxSimulator(mqtt.Client):
                         self.updateOutletStateLastTime(id)
             elif(self.FSMState[id] == FSM_READY_STATE):
                 if(id == 6):
-                    if(self.isTimeElapseDuration(id, 170)):
+                    if(self.isTimeElapseDuration(id, 70)):
                         self.FSMState[id] = FSM_CHARGING_STATE
                         self.outletCharging(id)
                         self.updateOutletStateLastTime(id)    
