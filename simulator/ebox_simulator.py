@@ -3,19 +3,14 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2013 Roger Light <roger@atchoo.org>
-#
-# All rights reserved. This program and the accompanying materials
-# are made available under the terms of the Eclipse Distribution License v1.0
-# which accompanies this distribution.
-#
-# The Eclipse Distribution License is available at
-#   http://www.eclipse.org/org/documents/edl-v10.php.
-#
-# Contributors:
-#    Roger Light - initial implementation
+# id = 0; status from 0 to 1 to 2 forever, the system will stop after 1 hour
+# id = 1; status from 0 to 1 -> 2 -> 3 -> 1 forever  
+# id = 2; status from 0 to 1 -> 2 -> 3 -> 1 -> 2 -> 3 -> 1 forever
+# id = 3; status from 0 to 1 -> 2 -> 4 -> 1 forever  
+# id = 4; status from 0 to 1 -> 2 -> 4 -> 1 -> 2 -> 4 -> 1 forever
+# id = 5; status from 0 to 1 forever
+# id = 6; status from 0 -> 1 -> 2 -> 3 -> 1
 
-# This example shows how you can use the MQTT client in a class.
 
 import paho.mqtt.client as mqtt
 import time
@@ -27,7 +22,7 @@ MCU_POWER_USAGE = 6
 PUBLISH_DURATION = 1
 DURATION_FROM_READY_TO_CHARGING = 2
 DURATION_FOR_CHARGING_COMPLETE = 10
-DURATION_AFTER_CHARGING_COMPLETE = 20
+DURATION_AFTER_CHARGING_COMPLETE = 10
 DURATION_FOR_CHARGER_RESTART = 10
 
 NUMBER_OF_OUTLET = 10
@@ -50,12 +45,8 @@ FSM_CHARGING_COMPLETE = 4
 FSM_CHARGING_UNPLUG = 5
 FSM_WAIT_FOR_CHARGER_RESTART = 6
 
-
-# id = 1; status from 0 to 1 to 2 in 20s then back to 1
-# expected: it will stop  
-# id = 2; status from 0 to 1 to 2 then 3
-# id = 3; status from 0 to 1 to 2 to 3
-
+outletCurrent = 100000
+outletPF = 50
 
 
 
@@ -266,17 +257,15 @@ class EboxSimulator(mqtt.Client):
                         self.outletCharging(id)
                         self.updateOutletStateLastTime(id)
             elif(self.FSMState[id] == FSM_CHARGING_STATE):
-                if(self.isTimeElapseDuration(id, 40)):
-                    if(id == 0):
-                        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-                        self.outletReady(id)
-                    else:
-                        self.FSMState[id] = FSM_WAIT_FOR_CHARGING_COMPLETE
-                        print("33333333333333333333333333333333333")
-                        self.updateOutletStateLastTime(id)
+                if(self.isTimeElapseDuration(id, 2)):
+                    self.FSMState[id] = FSM_WAIT_FOR_CHARGING_COMPLETE
+                    print("33333333333333333333333333333333333")
+                    self.updateOutletStateLastTime(id)
             elif(self.FSMState[id] == FSM_WAIT_FOR_CHARGING_COMPLETE):
                 if(self.isTimeElapseDuration(id, DURATION_FOR_CHARGING_COMPLETE)):
-                    if(id == 3 or id == 4):
+                    if(id == 0):
+                        pass    
+                    elif(id == 3 or id == 4):
                         self.outletUnplug(id)
                     elif(id == 1 or id == 2 or id == 6):
                         self.outletFullCharge(id)    
@@ -292,7 +281,7 @@ class EboxSimulator(mqtt.Client):
                             self.counterForChargerRestart[id] = self.counterForChargerRestart[id] + 1
                             self.FSMState[id] = FSM_WAIT_FOR_CHARGER_RESTART
                         self.updateOutletStateLastTime(id)
-                elif(id == 2 or id == 6):
+                elif(id == 0 or id == 2 or id == 6):
                     if(self.isTimeElapseDuration(id, DURATION_AFTER_CHARGING_COMPLETE)):
                         self.outletReady(id)
             elif(self.FSMState[id] == FSM_WAIT_FOR_CHARGER_RESTART):
@@ -425,8 +414,8 @@ class EboxSimulator(mqtt.Client):
     def outletCharging(self, id):
         self.printCustom(f'[Outlet {id} is charging]')
         self.set_outlet_status(id, OUTLET_CHARGING)
-        self.updateOutletCurrent(id, 1000)
-        self.updateOutletPowerFactor(id, 50)
+        self.updateOutletCurrent(id, outletCurrent)
+        self.updateOutletPowerFactor(id, outletPF)
                 
                 
         
@@ -479,7 +468,7 @@ class EboxSimulator(mqtt.Client):
             powerMessage = powerMessage +  str(id) + '-' + str(self.outletPower[id]) + ','	
         
         powerMessage = powerMessage +  str(NUMBER_OF_OUTLET) + '-' + str(self.outletPower[NUMBER_OF_OUTLET])
-        # self.printCustom(f'power = {powerMessage}')
+        self.printCustom(f'power = {powerMessage}')
         return powerMessage
     
     def set_outlet_power(self, id, power):
